@@ -33,29 +33,31 @@ namespace CSharpConsole {
 
         [MenuItem("Window/C# Console")]
         public static void Open() {
-            GetWindow(typeof(CSharpConsoleWindow)).Show();
+            var window = GetWindow(typeof(CSharpConsoleWindow));
+            window.titleContent = new GUIContent("C# Console");
+            window.Show();
         }
-
-        private void OnEnable() {
-            _errorStyle = new GUIStyle(EditorStyles.label) {
-                normal = {textColor = Color.red},
-                wordWrap = true,
-            };
-
-            _inputStyle = new GUIStyle(EditorStyles.label) {
-                normal = {textColor = Color.green},
-                fontStyle = FontStyle.Italic,
-            };
-        }
-
+        
         private void OnGUI() {
+            if (_errorStyle == null) {
+                _errorStyle = new GUIStyle(EditorStyles.label) {
+                    normal = {textColor = Color.red},
+                    wordWrap = true,
+                };
+
+                _inputStyle = new GUIStyle(EditorStyles.label) {
+                    normal = {textColor = Color.green},
+                    fontStyle = FontStyle.Italic,
+                };
+            }
+            
             EditorGUILayout.BeginHorizontal();
             _command = EditorGUILayout.TextField(_command);
             if (GUILayout.Button("Run", GUILayout.Width(100))) {
                 _output.Add(new LogEntry {_text = _command, _type = LogEntryType.Input});
                 try {
                     object result = RunCommand(_command);
-                    if (result is IEnumerable array) {
+                    if (result is IEnumerable array && !(result is string)) {
                         _output.Add(new LogEntry{_text = result.ToString(), _type = LogEntryType.Output});
                         foreach (var element in array) {
                             _output.Add(new LogEntry{_text = $"\t{element?.ToString() ?? "null"}", _type = LogEntryType.Output});
